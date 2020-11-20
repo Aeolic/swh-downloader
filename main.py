@@ -47,7 +47,7 @@ def main():
                 cooking_status.status_code))
             exit(1)
         cooking_status_json = cooking_status.json()
-        task_status = cooking_status_json["task_status"]
+        task_status = cooking_status_json["status"]
 
         if task_status != "done":
             print("Cooking is not done yet, retrying in 10 seconds.")
