@@ -36,7 +36,7 @@ def main():
     else:
         dir_id = swh_id
 
-    request_cooking_url = "https://archive.softwareheritage.org/api/1/vault/directory/{0}".format(
+    request_cooking_url = "https://archive.softwareheritage.org/api/1/vault/directory/{0}/".format(
         dir_id)
     is_cooked = False
     print("Requesting cooking for directory {0}.".format(dir_id))
@@ -50,7 +50,7 @@ def main():
         task_status = cooking_status_json["status"]
 
         if task_status != "done":
-            print("Cooking is not done yet, retrying in 10 seconds.")
+            print("Cooking is not done yet (status: {0}), retrying in 10 seconds.".format(task_status))
             time.sleep(10)
         else:
             print("Cooking is done, attempting to download the directory.")
