@@ -50,8 +50,8 @@ def main():
         task_status = cooking_status_json["status"]
 
         if task_status != "done":
-            print("Cooking is not done yet (status: {0}), retrying in 10 seconds.".format(task_status))
-            time.sleep(10)
+            print("Cooking is not done yet (status: {0}), retrying in 1 minute.".format(task_status))
+            time.sleep(60)
         else:
             print("Cooking is done, attempting to download the directory.")
             is_cooked = True
