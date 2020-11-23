@@ -50,27 +50,39 @@ def main():
         task_status = cooking_status_json["status"]
 
         if task_status != "done":
-            print("Cooking is not done yet (status: {0}), retrying in 1 minute.".format(task_status))
-            time.sleep(60)
+            print(
+                "Cooking is not done yet (status: {0}), retrying in 1 minute.".format(task_status))
+            time.sleep(300)
         else:
             print("Cooking is done, attempting to download the directory.")
             is_cooked = True
 
     print("Downloading the directory...")
-    fetch_url = request_cooking_url + "/raw/"
-    fetch_dir = requests.get(fetch_url)
-    if fetch_dir.status_code != 200:
-        print("Trying to download the directory did not return 200 OK but: {0}".format(
-            fetch_dir.status_code))
-        exit(1)
+    fetch_url = request_cooking_url + "raw/"
+
+    for i in range(10):
+        fetch_dir = requests.get(fetch_url)
+        if fetch_dir.status_code == 200:
+            print("Successfully downloaded directory.")
+            break
+        else:
+            print(
+                "Trying to download the directory did not return 200 OK but: {0}. Retrying {1} times.".format(
+                    fetch_dir.status_code, 10 - i))
+            time.sleep(10)
+
+        if i == 9:
+            print("Could not download the directory after 10 tries, exiting...")
+            exit(1)
 
     filename = "{0}.tar.gz".format(dir_id)
     with open(filename, "wb") as f:
         f.write(fetch_dir.content)
-    print("Extracting the tar file...")
+    print("Extracting the tar file to '{0}' ...".format(output_dir))
     shutil.unpack_archive(filename, output_dir)
     print("Deleting tar file...")
     os.remove(filename)
+    print("Done!")
 
 
 if __name__ == '__main__':
