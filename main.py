@@ -51,7 +51,7 @@ def main():
 
         if task_status != "done":
             print(
-                "Cooking is not done yet (status: {0}), retrying in 1 minute.".format(task_status))
+                "Cooking is not done yet (status: {0}), retrying in 5 minutes.".format(task_status))
             time.sleep(300)
         else:
             print("Cooking is done, attempting to download the directory.")
