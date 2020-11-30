@@ -6,6 +6,7 @@ import time
 import requests
 
 
+# TODO: add param for auto extract
 def main():
     parser = argparse.ArgumentParser(
         description="This python script requests cooking for a given revision or directory from "
@@ -16,8 +17,11 @@ def main():
     parser.add_argument("--dir", dest="id_type", action='store_const', const='directory',
                         default="revision",
                         help="Interpret given id as SWH directory id. Default: Revision id.")
+    parser.add_argument("--extract", dest="extract", action='store_const', const=True,
+                        default=False,
+                        help="Tells the script to automatically extract the downloaded tar.gz-file. Default: False")
     args = parser.parse_args()
-    swh_id, id_type, output_dir = args.id, args.id_type, args.o
+    swh_id, id_type, output_dir, extract = args.id, args.id_type, args.o, args.extract
 
     if id_type == "revision":
         get_dir_url = "https://archive.softwareheritage.org/api/1/revision/{0}".format(
@@ -75,13 +79,15 @@ def main():
             print("Could not download the directory after 10 tries, exiting...")
             exit(1)
 
+    print("Storing the file...")
     filename = "{0}.tar.gz".format(dir_id)
     with open(filename, "wb") as f:
         f.write(fetch_dir.content)
-    print("Extracting the tar file to '{0}' ...".format(output_dir))
-    shutil.unpack_archive(filename, output_dir)
-    print("Deleting tar file...")
-    os.remove(filename)
+    if extract:
+        print("Extracting the tar file to '{0}' ...".format(output_dir))
+        shutil.unpack_archive(filename, output_dir)
+        print("Deleting tar file...")
+        os.remove(filename)
     print("Done!")
 
 
