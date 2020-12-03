@@ -25,7 +25,7 @@ def main():
 
     if id_type == "revision":
         get_dir_url = "https://archive.softwareheritage.org/api/1/revision/{0}".format(
-            swh_id)  # TODO this should use https://archive.softwareheritage.org/api/1/revision/directory/doc/, but this returns 500 right now
+            swh_id)  # TODO this should use https://archive.softwareheritage.org/api/1/revision/directory/ check if that works now
 
         print("Resolving revision id...")
         revision_info = requests.get(get_dir_url)
@@ -80,8 +80,12 @@ def main():
             exit(1)
 
     print("Storing the file...")
-    filename = "{0}.tar.gz".format(dir_id)
-    with open(filename, "wb") as f:
+
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+
+    filename = "{0}/{1}.tar.gz".format(output_dir, dir_id)
+    with open(filename, "wb+") as f:
         f.write(fetch_dir.content)
     if extract:
         print("Extracting the tar file to '{0}' ...".format(output_dir))
