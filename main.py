@@ -1,6 +1,7 @@
 import argparse
 import os
 import shutil
+import sys
 import time
 
 import requests
@@ -31,7 +32,7 @@ def main():
         revision_info = requests.get(get_dir_url)
         if revision_info.status_code != 200:
             print("Trying to resolve the revision id did not return 200 OK but: {0}".format(
-                revision_info.status_code))
+                revision_info.status_code), file=sys.stderr)
             exit(1)
         rev_info_json = revision_info.json()
         dir_id = rev_info_json["directory"]
@@ -48,15 +49,15 @@ def main():
         cooking_status = requests.post(request_cooking_url)
         if cooking_status.status_code != 200:
             print("Trying to get the cooking status did not return 200 OK but: {0}".format(
-                cooking_status.status_code))
+                cooking_status.status_code), file=sys.stderr)
             exit(1)
         cooking_status_json = cooking_status.json()
         task_status = cooking_status_json["status"]
 
         if task_status != "done":
             print(
-                "Cooking is not done yet (status: {0}), retrying in 5 minutes.".format(task_status))
-            time.sleep(300)
+                "Cooking is not done yet (status: {0}), retrying in 10 minutes.".format(task_status))
+            time.sleep(600)
         else:
             print("Cooking is done, attempting to download the directory.")
             is_cooked = True
@@ -72,27 +73,30 @@ def main():
         else:
             print(
                 "Trying to download the directory did not return 200 OK but: {0}. Retrying {1} times.".format(
-                    fetch_dir.status_code, 10 - i))
+                    fetch_dir.status_code, 10 - i), file=sys.stderr)
             time.sleep(10)
 
         if i == 9:
-            print("Could not download the directory after 10 tries, exiting...")
+            print("Could not download the directory after 10 tries, exiting...", file=sys.stderr)
             exit(1)
 
     print("Storing the file...")
+    try:
+        if not os.path.exists(output_dir):
+            os.makedirs(output_dir)
 
-    if not os.path.exists(output_dir):
-        os.makedirs(output_dir)
-
-    filename = "{0}/{1}.tar.gz".format(output_dir, dir_id)
-    with open(filename, "wb+") as f:
-        f.write(fetch_dir.content)
-    if extract:
-        print("Extracting the tar file to '{0}' ...".format(output_dir))
-        shutil.unpack_archive(filename, output_dir)
-        print("Deleting tar file...")
-        os.remove(filename)
-    print("Done!")
+        filename = "{0}/{1}.tar.gz".format(output_dir, dir_id)
+        with open(filename, "wb+") as f:
+            f.write(fetch_dir.content)
+        if extract:
+            print("Extracting the tar file to '{0}' ...".format(output_dir))
+            shutil.unpack_archive(filename, output_dir)
+            print("Deleting tar file...")
+            os.remove(filename)
+        print("Done!")
+    except Exception as e:
+        print("Something went wrong, while trying to store the downloaded data: {0}. Exiting ...".format(e), file=sys.stderr)
+        exit(1)
 
 
 if __name__ == '__main__':
